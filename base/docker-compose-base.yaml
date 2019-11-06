@@ -1,0 +1,169 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+services:
+# dns_search: .
+  orderer.hbl.com:
+    container_name: orderer.hbl.com
+    image: hyperledger/fabric-orderer:$IMAGE_TAG
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/msp
+      # enabled TLS
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/tls/ca.crt]
+      - ORDERER_KAFKA_TOPIC_REPLICATIONFACTOR=1
+      - ORDERER_KAFKA_VERBOSE=true
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    volumes:
+    - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+    - ../crypto-config/ordererOrganizations/hbl.com/orderers/orderer.hbl.com/msp:/var/hyperledger/msp
+    - ../crypto-config/peerOrganizations/pk.hbl.com/peers/peer0.pk.hbl.com/tls:/var/hyperledger/tls
+    - ../crypto-config/peerOrganizations/pk.hbl.com/peers/peer0.pk.hbl.com/msp:/var/hyperledger/msp
+
+    # - ../crypto-config/ordererOrganizations/hbl.com/orderers/orderer.hbl.com/signcerts:/var/hyperledger/signcerts
+
+    # - ../crypto-config/peerOrganizations/pk.hbl.com/peers/peer0.pk.hbl.com/:/var/hyperledger/msp/peer0
+    - orderer.hbl.com:/var/hyperledger/production/orderer
+# - ../channel-artifacts/g
+    ports:
+      - 7050:7050
+
+
+      
+# **********************************************************************
+  peer0.pk.hbl.com:
+    container_name: peer0.pk.hbl.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+      
+    environment:
+      - GODEBUG=netdns=go
+      - CORE_PEER_ID=peer0.pk.hbl.com
+      - CORE_PEER_ADDRESS=peer0.pk.hbl.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.pk.hbl.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.pk.hbl.com:7051
+      - CORE_PEER_LOCALMSPID=HBLPKMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/pk.hbl.com/peers/peer0.pk.hbl.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/pk.hbl.com/peers/peer0.pk.hbl.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.pk.hbl.com:/var/hyperledger/production
+    ports:
+      - 7051:7051
+      - 7053:7053
+
+  peer1.pk.hbl.com:
+    container_name: peer1.pk.hbl.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.pk.hbl.com
+      - CORE_PEER_ADDRESS=peer1.pk.hbl.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.pk.hbl.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.pk.hbl.com:7051
+      - CORE_PEER_LOCALMSPID=HBLPKMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/pk.hbl.com/peers/peer1.pk.hbl.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/pk.hbl.com/peers/peer1.pk.hbl.com/tls:/etc/hyperledger/fabric/tls
+        - peer1.pk.hbl.com:/var/hyperledger/production
+
+    ports:
+      - 8051:7051
+      - 8053:7053
+
+  peer0.tur.hbl.com:
+    container_name: peer0.tur.hbl.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.tur.hbl.com
+      - CORE_PEER_ADDRESS=peer0.tur.hbl.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.tur.hbl.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.tur.hbl.com:7051
+      - CORE_PEER_LOCALMSPID=HBLTURMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/tur.hbl.com/peers/peer0.tur.hbl.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/tur.hbl.com/peers/peer0.tur.hbl.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.tur.hbl.com:/var/hyperledger/production
+    ports:
+      - 9051:7051
+      - 9053:7053
+
+  peer1.tur.hbl.com:
+    container_name: peer1.tur.hbl.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.tur.hbl.com
+      - CORE_PEER_ADDRESS=peer1.tur.hbl.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.tur.hbl.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.tur.hbl.com:7051
+      - CORE_PEER_LOCALMSPID=HBLTURMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/tur.hbl.com/peers/peer1.tur.hbl.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/tur.hbl.com/peers/peer1.tur.hbl.com/tls:/etc/hyperledger/fabric/tls
+        - peer1.tur.hbl.com:/var/hyperledger/production
+    ports:
+      - 10051:7051
+      - 10053:7053
+#These are peers of ORG3 peer0.org3
+  peer0.gb.hbl.com:
+    container_name: peer0.gb.hbl.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.gb.hbl.com
+      - CORE_PEER_ADDRESS=peer0.gb.hbl.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.gb.hbl.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.gb.hbl.com:7051
+      - CORE_PEER_LOCALMSPID=HBLGBMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/gb.hbl.com/peers/peer0.gb.hbl.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/gb.hbl.com/peers/peer0.gb.hbl.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.gb.hbl.com:/var/hyperledger/production
+    ports:
+      - 11051:7051
+      - 11053:7053
+
+
+#peer1.org3
+  peer1.gb.hbl.com:
+    container_name: peer1.gb.hbl.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.gb.hbl.com
+      - CORE_PEER_ADDRESS=peer1.gb.hbl.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.gb.hbl.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.gb.hbl.com:7051
+      - CORE_PEER_LOCALMSPID=HBLGBMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/gb.hbl.com/peers/peer1.gb.hbl.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/gb.hbl.com/peers/peer1.gb.hbl.com/tls:/etc/hyperledger/fabric/tls
+        - peer1.gb.hbl.com:/var/hyperledger/production
+    ports:
+      - 12051:7051
+      - 12053:7053

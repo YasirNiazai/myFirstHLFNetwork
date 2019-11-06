@@ -1,0 +1,171 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer.hbl.com:
+  peer0.pk.hbl.com:
+  peer1.pk.hbl.com:
+  # peer0.tur.hbl.com:
+  # peer1.tur.hbl.com:
+  # peer0.gb.hbl.com:
+  # peer1.gb.hbl.com:
+
+networks:
+  byfn:
+
+services:
+# *********this section generates Certificates for Orgs it comes under the services
+  ca.HBL_PAK.com:
+    image: hyperledger/fabric-ca
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca.hbl_pk.com
+      - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.pk.hbl.com-cert.pem
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/aaa63aa06377c09f695e6677ccac9238dd7120667a881af3047215664e0e9410_sk
+
+       # - FABRIC_CA_SERVER_CA_KEYFILE=/opt/gopath/src/github.com/hyperledger/fabric/myFirst-network/crypto-config/peerOrganizations/pk.hbl.com/msp/cacerts
+      # - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/ca&& ls *_sk
+    ports:
+      - "7054:7054"
+    command: sh -c 'fabric-ca-server start -b admin:adminpw'
+    volumes:
+      - ./crypto-config/peerOrganizations/pk.hbl.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca.hbl_pak.com
+    networks:
+      - byfn
+
+  # ca.HBL_TUR.com:
+  #   image: hyperledger/fabric-ca
+  #   environment:
+  #     - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+  #     - FABRIC_CA_SERVER_CA_NAME=ca.HBL_TUR.com
+  #     - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.tur.hbl.com-cert.pem
+  #     - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/e6e635318a31449e98ce9e30799c4e6b4630fed943ee24df345315ab3b4b69a4_sk
+
+  #     # - FABRIC_CA_SERVER_CA_KEYFILE=/opt/gopath/src/github.com/hyperledger/fabric/myFirst-network/crypto-config/peerOrganizations/tur.hbl.com/msp/cacerts
+
+  #   ports:
+  #     - "8054:7054"
+  #   command: sh -c 'fabric-ca-server start -b admin:adminpw'
+  #   volumes:
+  #     - ./crypto-config/peerOrganizations/pk.hbl.com/ca/:/etc/hyperledger/fabric-ca-server-config
+  #   container_name: ca.HBL_TUR.com
+  #   networks:
+  #     - byfn
+      
+  # ca.HBL_GB.com:
+  #   image: hyperledger/fabric-ca
+  #   environment:
+  #     - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+  #     - FABRIC_CA_SERVER_CA_NAME=ca.HBL_GB.com
+  #     - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.gb.hbl.com-cert.pem
+  #     - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/83736cdca6521f4093b084aa05bfe1587e090417aee1903091b0eaa7bdc0f962_sk
+
+  #     # - FABRIC_CA_SERVER_CA_KEYFILE=/opt/gopath/src/github.com/hyperledger/fabric/myFirst-network/crypto-config/peerOrganizations/gb.hbl.com/msp/cacerts
+
+  #   ports:
+  #     - "9054:7054"
+  #   command: sh -c 'fabric-ca-server start -b admin:adminpw'
+  #   volumes:
+  #     - ./crypto-config/peerOrganizations/pk.hbl.com/ca/:/etc/hyperledger/fabric-ca-server-config
+  #   container_name: ca.HBL_GB.com
+  #   networks:
+  #     - byfn    
+# *****************certificaes section ends here
+  orderer.hbl.com:
+    extends:
+      file:   base/docker-compose-base.yaml
+      service: orderer.hbl.com
+    container_name: orderer.hbl.com
+    networks:
+      - byfn
+# ************** Orderer ends here
+  peer0.pk.hbl.com:
+    container_name: peer0.pk.hbl.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.pk.hbl.com
+    networks:
+      - byfn
+
+  peer1.pk.hbl.com:
+    container_name: peer1.orgPAK.HBL.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer1.pk.hbl.com
+    networks:
+      - byfn
+
+  # peer0.tur.hbl.com:
+  #   container_name: peer0.orgTUR.HBL.com
+  #   extends:
+  #     file:  base/docker-compose-base.yaml
+  #     service: peer0.tur.hbl.com
+  #   networks:
+  #     - byfn
+
+  # peer1.tur.hbl.com:
+  #   container_name: peer1.orgTUR.HBL.com
+  #   extends:
+  #     file:  base/docker-compose-base.yaml
+  #     service: peer1.tur.hbl.com
+  #   networks:
+  #     - byfn
+
+  # peer0.gb.hbl.com:
+  #   container_name: peer0.orgGB.HBL.com
+  #   extends:
+  #     file:  base/docker-compose-base.yaml
+  #     service: peer0.gb.hbl.com
+  #   networks:
+  #     - byfn
+
+  # peer1.gb.hbl.com:
+  #   container_name: peer1.orgGB.HBL.com
+  #   extends:
+  #     file:  base/docker-compose-base.yaml
+  #     service: peer1.gb.hbl.com
+  #   networks:
+  #     - byfn
+  # ************** Peers ends here
+  
+  cli:
+    container_name: cli
+    image: hyperledger/fabric-tools:$IMAGE_TAG
+    tty: true
+    stdin_open: true
+    environment:
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=cli
+      - CORE_PEER_ADDRESS=peer0.pk.hbl.com:7051
+      - CORE_PEER_LOCALMSPID=HBLPKMSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/pk.hbl.com/peers/peer0.pk.hbl.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/pk.hbl.com/peers/peer0.pk.hbl.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/pk.hbl.com/peers/peer0.pk.hbl.com/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/pk.hbl.com/users/Admin@pk.hbl.com/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./../chaincode/:/opt/gopath/src/github.com/chaincode
+        - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+        - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+        - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+      - orderer.hbl.com
+      - peer0.pk.hbl.com
+      - peer1.pk.hbl.com
+      # - peer0.tur.hbl.com
+      # - peer1.tur.hbl.com
+      # - peer0.gb.hbl.com
+      # - peer1.gb.hbl.com
+    networks:
+      - byfn
